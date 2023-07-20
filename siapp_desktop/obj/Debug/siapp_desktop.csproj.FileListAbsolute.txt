@@ -16,3 +16,4 @@ C:\Users\rafli\Documents\projects\siapp_desktop\siapp_desktop\obj\Debug\siapp_de
 C:\Users\rafli\Documents\projects\siapp_desktop\siapp_desktop\obj\Debug\siapp_desktop.Home.resources
 C:\Users\rafli\Documents\projects\siapp_desktop\siapp_desktop\obj\Debug\siapp_desktop.PasswordChangeForm.resources
 C:\Users\rafli\Documents\projects\siapp_desktop\siapp_desktop\obj\Debug\siapp_desktop.PasswordForm.resources
+C:\Users\rafli\Documents\projects\siapp_desktop\siapp_desktop\obj\Debug\siapp_desktop.CertificateDetailsForm.resources

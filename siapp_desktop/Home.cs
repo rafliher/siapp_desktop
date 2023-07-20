@@ -19,6 +19,8 @@ namespace siapp_desktop
     {
         private String _accessToken;
         private const string ApiBaseUrl = "http://localhost:8080/api/";
+
+        private string username, fullname, email;
         public Home(string accessToken)
         {
             InitializeComponent();
@@ -237,14 +239,91 @@ namespace siapp_desktop
             this.Close();
         }
 
-        private void certCreateButton_Click(object sender, EventArgs e)
+        private async void certCreateButton_Click(object sender, EventArgs e)
         {
+            using (var certDetailsForm = new CertificateDetailsForm(fullname, email))
+            {
+                var result = certDetailsForm.ShowDialog();
 
+                if (result == DialogResult.OK)
+                {
+                    // Prepare the JSON payload for certificate creation
+                    var payload = new
+                    {
+                        organization = certDetailsForm.Organization,
+                        organizationUnit = certDetailsForm.OrganizationalUnit,
+                    };
+
+                    using (var httpClient = new HttpClient())
+                    {
+                        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+
+                        // Send the POST request to /api/certif
+                        var response = await httpClient.PostAsync(ApiBaseUrl + "certif", new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json"));
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // Certificate creation successful
+                            MessageBox.Show("Certificate created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            // Update the UI to show the certificate details
+                            Home_Load(sender, e);
+
+                            // Show the revoke button and hide the create button
+                            certCreateButton.Visible = false;
+                            certRevokeButton.Visible = true;
+                            certNameLabel.Visible = true;
+                            certEmailLabel.Visible = true;
+                            certOrgLabel.Visible = true;
+                            certExpLabel.Visible = true;
+                        }
+                        else
+                        {
+                            // Decode the error message from the response
+                            var errorJson = await response.Content.ReadAsStringAsync();
+                            JObject jsonObject = JsonConvert.DeserializeObject<JObject>(errorJson);
+                            var errorMessage = jsonObject["message"]?.ToString();
+                            MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
         }
 
-        private void certRevokeButton_Click(object sender, EventArgs e)
+        private async void certRevokeButton_Click(object sender, EventArgs e)
         {
+            using (var confirmDialog = new RevokeConfirmationDialog())
+            {
+                var result = confirmDialog.ShowDialog();
 
+                if (result == DialogResult.OK && confirmDialog.UserConfirmation == "REVOKE")
+                {
+                    // User confirmed the revoke action, proceed with certificate revocation
+                    var revokeResponse = await RevokeCertificate();
+
+                    if (revokeResponse.IsSuccessStatusCode)
+                    {
+                        // Certificate revocation successful
+                        MessageBox.Show("Certificate revoked successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // Hide the certificate details and show the create button
+                        certCreateButton.Visible = true;
+                        certRevokeButton.Visible = false;
+                        certNameLabel.Visible = false;
+                        certEmailLabel.Visible = false;
+                        certOrgLabel.Visible = false;
+                        certExpLabel.Visible = false;
+                    }
+                    else
+                    {
+                        // Decode the error message from the response
+                        var errorJson = await revokeResponse.Content.ReadAsStringAsync();
+                        JObject jsonObject = JsonConvert.DeserializeObject<JObject>(errorJson);
+                        var errorMessage = jsonObject["message"]?.ToString();
+                        MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         private void fileSignButton_Click(object sender, EventArgs e)
@@ -271,6 +350,10 @@ namespace siapp_desktop
                     {
                         var jsonContent = await response.Content.ReadAsStringAsync();
                         var username = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(jsonContent).data.username;
+                        var user = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(jsonContent).data;
+                        this.username = username;
+                        this.fullname = user.fullname;
+                        this.email = user.email;
                         return username;
                     }
                     else
@@ -354,6 +437,28 @@ namespace siapp_desktop
 
                     // Send the POST request to change the password
                     var response = await httpClient.PutAsync(ApiBaseUrl + "user/password", content);
+                    return response;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that may occur during the API call
+                return null;
+            }
+        }
+
+        private async Task<HttpResponseMessage> RevokeCertificate()
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    // Set the authorization header using the access token
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+
+                    // Send the DELETE request to revoke the certificate
+                    var response = await httpClient.DeleteAsync(ApiBaseUrl + "certif");
+
                     return response;
                 }
             }
