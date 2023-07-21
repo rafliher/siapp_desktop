@@ -12,6 +12,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.ConstrainedExecution;
+using System.IO;
+using System.Diagnostics;
 
 namespace siapp_desktop
 {
@@ -21,6 +24,8 @@ namespace siapp_desktop
         private const string ApiBaseUrl = "http://localhost:8080/api/";
 
         private string username, fullname, email;
+        byte[] p12CertificateBytes;
+
         public Home(string accessToken)
         {
             InitializeComponent();
@@ -39,7 +44,7 @@ namespace siapp_desktop
                 helloLabel.Text = "Hello, User!";
                 MessageBox.Show("Failed to fetch username from the API.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            string certificate = await GetCertificateFromApi(_accessToken);
+            string certificate = await GetCertificateFromApi();
             if (!string.IsNullOrEmpty(certificate))
             {
                 // Certificate found, show the details in labels
@@ -114,6 +119,9 @@ namespace siapp_desktop
                 certEmailLabel.Visible = true;
                 certOrgLabel.Visible = true;
                 certExpLabel.Visible = true;
+
+                // Fetch the p12 for signing
+                p12CertificateBytes = await GetP12FromApi();
             }
             else
             {
@@ -328,12 +336,37 @@ namespace siapp_desktop
 
         private void fileSignButton_Click(object sender, EventArgs e)
         {
+            try
+            {
+                using (var passphrasePrompt = new PassphrasePrompt())
+                {
+                    // Show the PasswordChangeForm as a dialog and get the result when the form is closed
+                    if (passphrasePrompt.ShowDialog() == DialogResult.OK)
+                    {
+                        string passphrase = passphrasePrompt.Passphrase;
+                        string pdfPath = passphrasePrompt.FilePath;
+                        string pdfName= passphrasePrompt.FileName;
 
-        }
+                        string targetPath = CopyFileToBinaryDirectory(pdfPath);
 
-        private void fileVerifyButton_Click(object sender, EventArgs e)
-        {
-
+                        if (!string.IsNullOrEmpty(passphrase))
+                        {
+                            X509Certificate2 p12Certificate = new X509Certificate2(p12CertificateBytes, passphrase);
+                            new IronPdf.Signing.PdfSignature(p12CertificateBytes, passphrase).SignPdfFile(targetPath);
+                            MessageBox.Show("File signed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            Process.Start(targetPath);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Please enter your passphrase.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while signing the file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private async Task<string> GetUsernameFromApi(string accessToken)
@@ -369,13 +402,13 @@ namespace siapp_desktop
             }
         }
 
-        private async Task<string> GetCertificateFromApi(string accessToken)
+        private async Task<string> GetCertificateFromApi()
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
 
                     var response = await httpClient.GetAsync(ApiBaseUrl + "certif/cert");
 
@@ -390,13 +423,51 @@ namespace siapp_desktop
                         string certificate = Encoding.UTF8.GetString(certBytes);
 
                         fileSignButton.Enabled = true;
-                        fileVerifyButton.Enabled = true;
                         return certificate;
                     }
                     else if (response.StatusCode == (System.Net.HttpStatusCode)428)
                     {
                         // No certificate found, return null
-                        fileVerifyButton.Enabled = true;
+                        return null;
+                    }
+                    else
+                    {
+                        // Handle other error cases here
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions that may occur during the API call
+                return null;
+            }
+        }
+
+        private async Task<byte[]> GetP12FromApi()
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+
+                    var response = await httpClient.GetAsync(ApiBaseUrl + "certif/p12");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonContent = await response.Content.ReadAsStringAsync();
+                        JObject jsonObject = JsonConvert.DeserializeObject<JObject>(jsonContent);
+                        var p12Base64 = jsonObject["p12"]?.ToString();
+
+                        // Decode the Base64-encoded certificate
+                        byte[] p12Bytes = Convert.FromBase64String(p12Base64);
+
+                        return p12Bytes;
+                    }
+                    else if (response.StatusCode == (System.Net.HttpStatusCode)428)
+                    {
+                        // No certificate found, return null
                         return null;
                     }
                     else
@@ -469,5 +540,44 @@ namespace siapp_desktop
             }
         }
 
+
+        private String CopyFileToBinaryDirectory(string sourceFilePath)
+        {
+            try
+            {
+                if (File.Exists(sourceFilePath))
+                {
+                    // Get the filename without the extension
+                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(sourceFilePath);
+
+                    // Get the file extension
+                    string fileExtension = Path.GetExtension(sourceFilePath);
+
+                    // Create the new filename with the "_signed" suffix
+                    string newFileName = $"{fileNameWithoutExtension}_signed{fileExtension}";
+
+                    // Get the binary directory path (the directory where the application is running)
+                    string binaryDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+                    // Combine the binary directory with the new filename to get the destination file path
+                    string destinationFilePath = Path.Combine(binaryDirectory, newFileName);
+
+                    // Copy the file to the destination path
+                    File.Copy(sourceFilePath, destinationFilePath, true);
+
+                    return destinationFilePath;
+                }
+                else
+                {
+                    MessageBox.Show("Source file does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while copying the file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
     }
 }

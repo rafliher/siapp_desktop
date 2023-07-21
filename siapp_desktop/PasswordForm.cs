@@ -40,5 +40,15 @@ namespace siapp_desktop
             DialogResult = DialogResult.Cancel;
             Close();
         }
+
+        private void PasswordTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -42,7 +42,6 @@
             this.peekPassphraseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logOutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fileSignButton = new System.Windows.Forms.Button();
-            this.fileVerifyButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -64,7 +63,7 @@
             this.groupBox1.Controls.Add(this.certOrgLabel);
             this.groupBox1.Controls.Add(this.certEmailLabel);
             this.groupBox1.Controls.Add(this.certNameLabel);
-            this.groupBox1.Location = new System.Drawing.Point(173, 65);
+            this.groupBox1.Location = new System.Drawing.Point(15, 65);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(465, 225);
             this.groupBox1.TabIndex = 1;
@@ -135,7 +134,7 @@
             this.manageAccountToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(494, 28);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -173,7 +172,7 @@
             // fileSignButton
             // 
             this.fileSignButton.Enabled = false;
-            this.fileSignButton.Location = new System.Drawing.Point(173, 330);
+            this.fileSignButton.Location = new System.Drawing.Point(145, 329);
             this.fileSignButton.Name = "fileSignButton";
             this.fileSignButton.Size = new System.Drawing.Size(197, 96);
             this.fileSignButton.TabIndex = 3;
@@ -181,23 +180,11 @@
             this.fileSignButton.UseVisualStyleBackColor = true;
             this.fileSignButton.Click += new System.EventHandler(this.fileSignButton_Click);
             // 
-            // fileVerifyButton
-            // 
-            this.fileVerifyButton.Enabled = false;
-            this.fileVerifyButton.Location = new System.Drawing.Point(441, 330);
-            this.fileVerifyButton.Name = "fileVerifyButton";
-            this.fileVerifyButton.Size = new System.Drawing.Size(197, 96);
-            this.fileVerifyButton.TabIndex = 4;
-            this.fileVerifyButton.Text = "Verify a File";
-            this.fileVerifyButton.UseVisualStyleBackColor = true;
-            this.fileVerifyButton.Click += new System.EventHandler(this.fileVerifyButton_Click);
-            // 
             // Home
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.fileVerifyButton);
+            this.ClientSize = new System.Drawing.Size(494, 450);
             this.Controls.Add(this.fileSignButton);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.helloLabel);
@@ -231,6 +218,5 @@
         private System.Windows.Forms.ToolStripMenuItem peekPassphraseToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logOutToolStripMenuItem;
         private System.Windows.Forms.Button fileSignButton;
-        private System.Windows.Forms.Button fileVerifyButton;
     }
 }

@@ -42,6 +42,7 @@
             this.label1.Size = new System.Drawing.Size(101, 16);
             this.label1.TabIndex = 9;
             this.label1.Text = "Your Password:";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // CancelButton
             // 
@@ -70,6 +71,7 @@
             this.PasswordTextBox.PasswordChar = '*';
             this.PasswordTextBox.Size = new System.Drawing.Size(210, 22);
             this.PasswordTextBox.TabIndex = 6;
+            this.PasswordTextBox.TextChanged += new System.EventHandler(this.PasswordTextBox_TextChanged);
             // 
             // PasswordForm
             // 
