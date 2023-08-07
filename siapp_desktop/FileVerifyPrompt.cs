@@ -5,13 +5,12 @@ using System.Windows.Forms;
 
 namespace siapp_desktop
 {
-    public partial class PassphrasePrompt : Form
+    public partial class FileVerifyPrompt : Form
     {
-        public string Passphrase { get; private set; }
         public string FileName { get; private set; }
         public string FilePath { get; private set; }
 
-        public PassphrasePrompt()
+        public FileVerifyPrompt()
         {
             InitializeComponent();
             AllowDrop = true;
@@ -35,7 +34,6 @@ namespace siapp_desktop
                 FileName = Path.GetFileName(files[0]);
                 FileNameLabel.Text = FileName;
                 FilePath = files[0];
-                PassphraseTextBox.Text = string.Empty; // Clear the passphrase textbox
             }
             else
             {
@@ -45,16 +43,9 @@ namespace siapp_desktop
 
         private void OkButton_Click(object sender, EventArgs e)
         {
-            Passphrase = PassphraseTextBox.Text;
             if (string.IsNullOrEmpty(FileName) || string.IsNullOrEmpty(FilePath))
             {
                 MessageBox.Show("Please select a PDF file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(Passphrase))
-            {
-                MessageBox.Show("Please fill in the passphrase field.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 

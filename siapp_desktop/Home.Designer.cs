@@ -42,6 +42,7 @@
             this.peekPassphraseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logOutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fileSignButton = new System.Windows.Forms.Button();
+            this.fileVerifyButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -172,7 +173,7 @@
             // fileSignButton
             // 
             this.fileSignButton.Enabled = false;
-            this.fileSignButton.Location = new System.Drawing.Point(145, 329);
+            this.fileSignButton.Location = new System.Drawing.Point(15, 305);
             this.fileSignButton.Name = "fileSignButton";
             this.fileSignButton.Size = new System.Drawing.Size(197, 96);
             this.fileSignButton.TabIndex = 3;
@@ -180,11 +181,22 @@
             this.fileSignButton.UseVisualStyleBackColor = true;
             this.fileSignButton.Click += new System.EventHandler(this.fileSignButton_Click);
             // 
+            // fileVerifyButton
+            // 
+            this.fileVerifyButton.Location = new System.Drawing.Point(283, 305);
+            this.fileVerifyButton.Name = "fileVerifyButton";
+            this.fileVerifyButton.Size = new System.Drawing.Size(197, 96);
+            this.fileVerifyButton.TabIndex = 4;
+            this.fileVerifyButton.Text = "Verify a File";
+            this.fileVerifyButton.UseVisualStyleBackColor = true;
+            this.fileVerifyButton.Click += new System.EventHandler(this.fileVerifyButton_Click);
+            // 
             // Home
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(494, 450);
+            this.ClientSize = new System.Drawing.Size(494, 413);
+            this.Controls.Add(this.fileVerifyButton);
             this.Controls.Add(this.fileSignButton);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.helloLabel);
@@ -218,5 +230,6 @@
         private System.Windows.Forms.ToolStripMenuItem peekPassphraseToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logOutToolStripMenuItem;
         private System.Windows.Forms.Button fileSignButton;
+        private System.Windows.Forms.Button fileVerifyButton;
     }
 }

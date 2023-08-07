@@ -1,6 +1,6 @@
 ﻿namespace siapp_desktop
 {
-    partial class PassphrasePrompt
+    partial class FileVerifyPrompt
     {
         /// <summary>
         /// Required designer variable.
@@ -28,27 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
             this.CancelButton = new System.Windows.Forms.Button();
             this.OkButton = new System.Windows.Forms.Button();
-            this.PassphraseTextBox = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.FileNameLabel = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(19, 105);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(106, 16);
-            this.label1.TabIndex = 13;
-            this.label1.Text = "Your Passhrase:";
-            // 
             // CancelButton
             // 
-            this.CancelButton.Location = new System.Drawing.Point(212, 148);
+            this.CancelButton.Location = new System.Drawing.Point(210, 89);
             this.CancelButton.Name = "CancelButton";
             this.CancelButton.Size = new System.Drawing.Size(104, 34);
             this.CancelButton.TabIndex = 12;
@@ -58,21 +47,13 @@
             // 
             // OkButton
             // 
-            this.OkButton.Location = new System.Drawing.Point(74, 148);
+            this.OkButton.Location = new System.Drawing.Point(72, 89);
             this.OkButton.Name = "OkButton";
             this.OkButton.Size = new System.Drawing.Size(104, 34);
             this.OkButton.TabIndex = 11;
             this.OkButton.Text = "OK";
             this.OkButton.UseVisualStyleBackColor = true;
             this.OkButton.Click += new System.EventHandler(this.OkButton_Click);
-            // 
-            // PassphraseTextBox
-            // 
-            this.PassphraseTextBox.Location = new System.Drawing.Point(146, 102);
-            this.PassphraseTextBox.Name = "PassphraseTextBox";
-            this.PassphraseTextBox.PasswordChar = '*';
-            this.PassphraseTextBox.Size = new System.Drawing.Size(210, 22);
-            this.PassphraseTextBox.TabIndex = 10;
             // 
             // groupBox1
             // 
@@ -93,35 +74,29 @@
             this.FileNameLabel.Text = "no file choosen";
             this.FileNameLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
-            // PassphrasePrompt
+            // FileVerifyPrompt
             // 
             this.AcceptButton = this.OkButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(378, 202);
+            this.ClientSize = new System.Drawing.Size(378, 138);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.CancelButton);
             this.Controls.Add(this.OkButton);
-            this.Controls.Add(this.PassphraseTextBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "PassphrasePrompt";
+            this.Name = "FileVerifyPrompt";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Passphrase Prompt";
+            this.Text = "Verify File";
             this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button CancelButton;
         private System.Windows.Forms.Button OkButton;
-        private System.Windows.Forms.TextBox PassphraseTextBox;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label FileNameLabel;
     }

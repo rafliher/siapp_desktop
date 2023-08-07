@@ -15,6 +15,11 @@ using System.Windows.Forms;
 using System.Runtime.ConstrainedExecution;
 using System.IO;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using IronPdf.Signing.Inspection;
+using IronPdf;
+using iText.Signatures;
+using Aspose.Pdf;
 
 namespace siapp_desktop
 {
@@ -255,43 +260,51 @@ namespace siapp_desktop
 
                 if (result == DialogResult.OK)
                 {
-                    // Prepare the JSON payload for certificate creation
-                    var payload = new
+                    using (var passphraseCreatePrompt = new PassphraseCreatePrompt())
                     {
-                        organization = certDetailsForm.Organization,
-                        organizationUnit = certDetailsForm.OrganizationalUnit,
-                    };
+                        var result2 = passphraseCreatePrompt.ShowDialog();
 
-                    using (var httpClient = new HttpClient())
-                    {
-                        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-
-                        // Send the POST request to /api/certif
-                        var response = await httpClient.PostAsync(ApiBaseUrl + "certif", new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json"));
-
-                        if (response.IsSuccessStatusCode)
+                        if (result2 == DialogResult.OK)
                         {
-                            // Certificate creation successful
-                            MessageBox.Show("Certificate created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            var payload = new
+                            {
+                                organization = certDetailsForm.Organization,
+                                organizationUnit = certDetailsForm.OrganizationalUnit,
+                                passphrase = passphraseCreatePrompt.Passphrase
+                            };
 
-                            // Update the UI to show the certificate details
-                            Home_Load(sender, e);
+                            using (var httpClient = new HttpClient())
+                            {
+                                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
 
-                            // Show the revoke button and hide the create button
-                            certCreateButton.Visible = false;
-                            certRevokeButton.Visible = true;
-                            certNameLabel.Visible = true;
-                            certEmailLabel.Visible = true;
-                            certOrgLabel.Visible = true;
-                            certExpLabel.Visible = true;
-                        }
-                        else
-                        {
-                            // Decode the error message from the response
-                            var errorJson = await response.Content.ReadAsStringAsync();
-                            JObject jsonObject = JsonConvert.DeserializeObject<JObject>(errorJson);
-                            var errorMessage = jsonObject["message"]?.ToString();
-                            MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                // Send the POST request to /api/certif
+                                var response = await httpClient.PostAsync(ApiBaseUrl + "certif", new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json"));
+
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    // Certificate creation successful
+                                    MessageBox.Show("Certificate created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                                    // Update the UI to show the certificate details
+                                    Home_Load(sender, e);
+
+                                    // Show the revoke button and hide the create button
+                                    certCreateButton.Visible = false;
+                                    certRevokeButton.Visible = true;
+                                    certNameLabel.Visible = true;
+                                    certEmailLabel.Visible = true;
+                                    certOrgLabel.Visible = true;
+                                    certExpLabel.Visible = true;
+                                }
+                                else
+                                {
+                                    // Decode the error message from the response
+                                    var errorJson = await response.Content.ReadAsStringAsync();
+                                    JObject jsonObject = JsonConvert.DeserializeObject<JObject>(errorJson);
+                                    var errorMessage = jsonObject["message"]?.ToString();
+                                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
                         }
                     }
                 }
@@ -338,22 +351,44 @@ namespace siapp_desktop
         {
             try
             {
-                using (var passphrasePrompt = new PassphrasePrompt())
+                using (var fileSignPrompt = new FileSignPrompt())
                 {
                     // Show the PasswordChangeForm as a dialog and get the result when the form is closed
-                    if (passphrasePrompt.ShowDialog() == DialogResult.OK)
+                    if (fileSignPrompt.ShowDialog() == DialogResult.OK)
                     {
-                        string passphrase = passphrasePrompt.Passphrase;
-                        string pdfPath = passphrasePrompt.FilePath;
-                        string pdfName= passphrasePrompt.FileName;
+                        string passphrase = fileSignPrompt.Passphrase;
+                        string pdfPath = fileSignPrompt.FilePath;
+                        string pdfName= fileSignPrompt.FileName;
 
                         string targetPath = CopyFileToBinaryDirectory(pdfPath);
 
                         if (!string.IsNullOrEmpty(passphrase))
                         {
-                            X509Certificate2 p12Certificate = new X509Certificate2(p12CertificateBytes, passphrase);
-                            new IronPdf.Signing.PdfSignature(p12CertificateBytes, passphrase).SignPdfFile(targetPath);
-                            MessageBox.Show("File signed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            // Load the source PDF document for adding the digital signature
+                            Document doc = new Document(targetPath);
+
+                            // Instantiate the PdfFileSignature for the loaded PDF document
+                            Aspose.Pdf.Facades.PdfFileSignature signature = new Aspose.Pdf.Facades.PdfFileSignature(doc);
+                            string certTempPath = Path.Combine(Path.GetTempPath(), "f.tmp");
+                            File.WriteAllBytes(certTempPath, p12CertificateBytes);
+                            // Load the certificate file along with the password
+                            Aspose.Pdf.Forms.PKCS7 pkcs = new Aspose.Pdf.Forms.PKCS7(certTempPath, passphrase);
+
+                            // Assign the access permissions
+                            Aspose.Pdf.Forms.DocMDPSignature docMdpSignature = new Aspose.Pdf.Forms.DocMDPSignature(pkcs, Aspose.Pdf.Forms.DocMDPAccessPermissions.FillingInForms);
+
+                            // Set the rectangle for the signature placement
+                            System.Drawing.Rectangle rect = new System.Drawing.Rectangle(150, 650, 450, 150);
+
+                            // Set signature appearance
+                            signature.SignatureAppearance = "profile.jpg";
+
+                            // Sign the PDF file with the certify method
+                            signature.Certify(1, "Signature Reason", "Contact", "Location", true, rect, docMdpSignature);
+
+                            // Save digitally signed PDF file 
+                            signature.Save(targetPath);
+
                             Process.Start(targetPath);
                         }
                         else
@@ -368,6 +403,36 @@ namespace siapp_desktop
                 MessageBox.Show("An error occurred while signing the file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private async void fileVerifyButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var fileVerifyPrompt = new FileVerifyPrompt())
+                {
+                    // Show the FileVerifyPrompt as a dialog and get the result when the form is closed
+                    if (fileVerifyPrompt.ShowDialog() == DialogResult.OK)
+                    {
+                        string pdfPath = fileVerifyPrompt.FilePath;
+                        string pdfName = fileVerifyPrompt.FileName;
+
+                        Aspose.Pdf.Facades.PdfFileSignature pdfSign = new Aspose.Pdf.Facades.PdfFileSignature();
+                        pdfSign.BindPdf(pdfPath);
+                        if (pdfSign.VerifySignature("Signature1"))
+                        {
+                            MessageBox.Show("Signature Verified", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+                        MessageBox.Show("An error occurred while verifying the file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while verifying the file.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
 
         private async Task<string> GetUsernameFromApi(string accessToken)
         {
@@ -517,6 +582,7 @@ namespace siapp_desktop
                 return null;
             }
         }
+
 
         private async Task<HttpResponseMessage> RevokeCertificate()
         {

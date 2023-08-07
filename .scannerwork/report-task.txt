@@ -1,0 +1,6 @@
+projectKey=siapp-desktop
+serverUrl=http://localhost:9000
+serverVersion=10.0.0.68432
+dashboardUrl=http://localhost:9000/dashboard?id=siapp-desktop
+ceTaskId=AYnLbM8eM2pcOVrdbtiL
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AYnLbM8eM2pcOVrdbtiL
